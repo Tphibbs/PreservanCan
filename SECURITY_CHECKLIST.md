@@ -14,6 +14,8 @@ Manual verification steps before inviting real franchise candidates.
 - [ ] Candidate cannot access `/admin` routes (redirected to `/dashboard`)
 - [ ] Candidate cannot read `candidate_notes` via Supabase client or API
 - [ ] Candidate cannot read `candidate_scores` via Supabase client or API
+- [ ] Candidate cannot read `candidate_crm` (sales-internal: red_flags, capital, concerns)
+- [ ] Candidate cannot read `candidate_discovery_readiness`
 - [ ] Candidate can only read own questionnaire responses
 
 ## Role separation
@@ -38,10 +40,20 @@ Manual verification steps before inviting real franchise candidates.
 
 ## RLS (Supabase)
 
-- [ ] RLS enabled on all 9 tables
+- [ ] RLS enabled on all tables (11 total, incl. `candidate_crm`, `candidate_discovery_readiness`)
 - [ ] Run as candidate: `SELECT * FROM candidate_notes` returns 0 rows
 - [ ] Run as candidate: `SELECT * FROM candidate_scores` returns 0 rows
-- [ ] Run as admin: both tables return data
+- [ ] Run as candidate: `SELECT * FROM candidate_crm` returns 0 rows
+- [ ] Run as candidate: `SELECT * FROM candidate_discovery_readiness` returns 0 rows
+- [ ] Run as admin: all tables return data
+
+## Sales Command Center (admin-only routes)
+
+- [ ] `/api/admin/candidates` returns 401 without auth, 403 for candidate role
+- [ ] `/api/admin/discovery` returns 401 without auth, 403 for candidate role
+- [ ] Battle card (`/admin/candidates/[id]/battle-card`) is admin-only and never linked to candidates
+- [ ] Sales playbook (`/admin/sales-playbook`) is admin-only
+- [ ] Sales-internal fields (red_flags, capital, concerns) live only in `candidate_crm`, never in candidate-readable `candidate_profiles`
 
 ## API routes
 

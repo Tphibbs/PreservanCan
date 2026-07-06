@@ -21,11 +21,13 @@ const candidateLinks = [
 ];
 
 const adminLinks = [
-  { href: "/admin", label: "Admin Home" },
+  { href: "/admin", label: "Command Center" },
   { href: "/admin/candidates", label: "Candidates" },
+  { href: "/admin/candidates/new", label: "Add Candidate" },
+  { href: "/admin/sales-playbook", label: "Playbook" },
+  { href: "/admin/scorecards", label: "Scorecards" },
   { href: "/admin/invites", label: "Invites" },
   { href: "/admin/content", label: "Content" },
-  { href: "/admin/scorecards", label: "Scorecards" },
 ];
 
 export function AppHeader({ email, role, showNav = true }: AppHeaderProps) {

@@ -15,20 +15,14 @@ set -a && source .env.local && set +a
 
 API="https://api.vercel.com"
 TEAM_SLUG="preserv-hq"
+PRESERVAN_CAN_PROJECT_ID="prj_hwLsDOSuzguqBicwxpNnkdPDGypL"
 
 echo "==> Finding project..."
-PROJECT=$(curl -sS -H "Authorization: Bearer $TOKEN" \
-  "$API/v9/projects?teamId=$TEAM_SLUG&search=preservan" | \
-  python3 -c "import sys,json; ps=json.load(sys.stdin).get('projects',[]); p=next((x for x in ps if 'preservan' in x.get('name','').lower()), ps[0] if ps else None); print(json.dumps(p))")
+PROJECT_ID="$PRESERVAN_CAN_PROJECT_ID"
+PROJECT_NAME="preservan-can"
 
-PROJECT_ID=$(echo "$PROJECT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))")
-PROJECT_NAME=$(echo "$PROJECT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('name',''))")
-
-if [ -z "$PROJECT_ID" ]; then
-  echo "Project not found. Linking..."
-  npx --yes vercel@latest link --token "$TOKEN" --yes
-  PROJECT_ID=$(cat .vercel/project.json | python3 -c "import sys,json; print(json.load(sys.stdin)['projectId'])")
-fi
+mkdir -p .vercel
+echo "{\"orgId\":\"team_RbcqNupy8blVwds5KP8BCRDq\",\"projectId\":\"$PROJECT_ID\"}" > .vercel/project.json
 
 echo "Project: $PROJECT_NAME ($PROJECT_ID)"
 
@@ -44,7 +38,7 @@ echo "==> Setting env vars..."
 set_env "NEXT_PUBLIC_SUPABASE_URL" "$NEXT_PUBLIC_SUPABASE_URL"
 set_env "NEXT_PUBLIC_SUPABASE_ANON_KEY" "$NEXT_PUBLIC_SUPABASE_ANON_KEY"
 set_env "SUPABASE_SERVICE_ROLE_KEY" "$SUPABASE_SERVICE_ROLE_KEY"
-set_env "NEXT_PUBLIC_APP_URL" "${NEXT_PUBLIC_APP_URL:-https://can.preservan.com}"
+set_env "NEXT_PUBLIC_APP_URL" "${NEXT_PUBLIC_APP_URL:-https://preservan-can.vercel.app}"
 
 echo "==> Disabling deployment protection on production..."
 curl -sS -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
@@ -52,6 +46,6 @@ curl -sS -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: applicatio
   -d '{"ssoProtection":{"deploymentType":"preview"}}' >/dev/null || true
 
 echo "==> Deploying..."
-npx --yes vercel@latest deploy --prod --token "$TOKEN" --yes
+npx --yes vercel@latest deploy --prod --token "$TOKEN" --yes --scope preserv-hq
 
 echo "==> Done. Check https://preservan-can.vercel.app"

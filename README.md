@@ -1,8 +1,10 @@
 # PreservanCan
 
-Franchise candidate preview and qualification portal for Preservan franchise prospects.
+Internal **Franchise Sales Command Center** for the Preservan franchise development team, plus a candidate-facing preview/qualification portal.
 
-**Separate from Preservan Hub.** No operational franchisee, Jobber, HubSpot, support ticket, or live KPI data.
+The primary user is the sales team: qualify candidates, prep better calls, document fit, spot red flags, run a Discovery Day readiness checklist, and generate follow-up drafts. The candidate portal remains available but is secondary.
+
+**Separate from Preservan Hub.** No operational franchisee, Jobber, HubSpot, support ticket, or live KPI data. Sales-internal fields (red flags, capital, concerns, scores) live in admin-only tables (`candidate_crm`, `candidate_scores`, `candidate_discovery_readiness`) that candidate roles can never read.
 
 ## Stack
 
@@ -91,9 +93,20 @@ VALUES ('YOUR_AUTH_USER_UUID', 'you@preservan.com', 'Your Name', 'executive_admi
 - `/training-preview`, `/connect-center`, `/sample-dashboard`
 - `/validation-prep`, `/questionnaire`, `/next-steps`
 
-### Admin
-- `/admin`, `/admin/candidates`, `/admin/candidates/[id]`
+### Admin (Sales Command Center)
+- `/admin` — Sales dashboard (active, strong-fit, needs follow-up, Discovery-ready, paused/DQ, recent activity, next follow-ups)
+- `/admin/candidates` — Candidate CRM with segment filters
+- `/admin/candidates/new` — Create a candidate (no portal account required)
+- `/admin/candidates/[id]` — Detail: call-prep snapshot, CRM edit, fit scorecard, Discovery Day checklist, follow-up draft generator, notes, activity, questionnaire
+- `/admin/candidates/[id]/battle-card` — Print-friendly call-prep battle card
+- `/admin/sales-playbook` — Sales conversation guide
 - `/admin/invites`, `/admin/content`, `/admin/scorecards`
+
+### Candidate CRM data model
+- `candidate_profiles` — candidate-safe core fields (nullable `user_id` so the sales team can create candidates without a login) plus `assigned_rep`, `next_step`, `next_follow_up_date`
+- `candidate_crm` — **admin-only**: liquid capital, timeline, owner-role preference, comfort levels, why Preservan, biggest concern, red flags
+- `candidate_scores` — **admin-only**: 8 fit scores (1–5), fit category, recommended next action, admin summary
+- `candidate_discovery_readiness` — **admin-only**: 9-point Discovery Day checklist
 
 ## Vercel deployment
 

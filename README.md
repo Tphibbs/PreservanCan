@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PreservanCan
 
-## Getting Started
+Franchise candidate preview and qualification portal for Preservan franchise prospects.
 
-First, run the development server:
+**Separate from Preservan Hub.** No operational franchisee, Jobber, HubSpot, support ticket, or live KPI data.
+
+## Stack
+
+- Next.js 16 (App Router)
+- TypeScript + Tailwind CSS
+- Supabase Auth (magic link)
+- Supabase Postgres + RLS
+- Vercel deployment
+
+## Roles
+
+| Role | Access |
+|------|--------|
+| `candidate` | Own profile, preview content, questionnaire |
+| `broker_preview` | Limited preview content |
+| `franchise_dev_admin` | Candidates, invites, notes, scores |
+| `executive_admin` | Full admin access |
+
+## Local setup
+
+1. Clone the repo and install dependencies:
+
+```bash
+npm install
+```
+
+2. Copy environment variables:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Fill in Supabase credentials from [Supabase Dashboard](https://supabase.com/dashboard/project/vzdpbdphltujkobhqint/settings/api):
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (required for invite acceptance)
+- `NEXT_PUBLIC_APP_URL` (e.g. `http://localhost:3000`)
+
+4. Database migrations are in `supabase/migrations/`. If setting up a fresh project, run the SQL in the Supabase SQL editor or via Supabase CLI.
+
+5. Start the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Bootstrap first admin
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Create an invite at `/admin/invites` won't work until you have an admin. Bootstrap manually:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Option A — SQL (after first magic-link login):**
 
-## Learn More
+```sql
+-- Find your auth user id in Supabase Auth, then:
+INSERT INTO app_users (auth_user_id, email, full_name, role)
+VALUES ('YOUR_AUTH_USER_UUID', 'you@preservan.com', 'Your Name', 'executive_admin');
+```
 
-To learn more about Next.js, take a look at the following resources:
+**Option B — Invite flow with service role:**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Temporarily insert an admin invite via Supabase SQL using service role context
+2. Or use Supabase dashboard Table Editor to insert `app_users` row linked to your auth user
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Sign in via magic link at `/login`
+4. Go to `/admin/invites` and create candidate invites
 
-## Deploy on Vercel
+## Candidate workflow
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Admin creates invite → copies link
+2. Candidate opens `/accept-invite?token=...`
+3. Candidate signs in with magic link (same email as invite)
+4. App creates profile + assignments
+5. Candidate reviews modules and completes questionnaire
+6. Admin reviews activity, notes, and scorecard
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Routes
+
+### Public
+- `/` — Homepage
+- `/login` — Magic link login
+- `/accept-invite` — Invite acceptance
+
+### Candidate
+- `/dashboard`, `/start-here`, `/owner-role`, `/operating-system`
+- `/training-preview`, `/connect-center`, `/sample-dashboard`
+- `/validation-prep`, `/questionnaire`, `/next-steps`
+
+### Admin
+- `/admin`, `/admin/candidates`, `/admin/candidates/[id]`
+- `/admin/invites`, `/admin/content`, `/admin/scorecards`
+
+## Vercel deployment
+
+1. Import repo to Vercel
+2. Add all env vars from `.env.example`
+3. Set `NEXT_PUBLIC_APP_URL` to production URL (e.g. `https://can.preservan.com`)
+4. In Supabase Auth → URL Configuration, add:
+   - Site URL: your production URL
+   - Redirect URLs: `https://your-domain.com/auth/callback`
+
+## Supabase project
+
+- **Project name:** PreservanCan
+- **Project ref:** `vzdpbdphltujkobhqint`
+- **Region:** us-west-2
+
+## Security
+
+See `SECURITY_CHECKLIST.md` and `PRODUCTION_CHECKLIST.md`.
+
+**Phase 2** (RLS hardening audit) is documented in `PHASE2.md`.
+
+## Legal disclaimers
+
+All candidate-facing pages include FDD disclaimer footer. Sample dashboard uses static demo data only.

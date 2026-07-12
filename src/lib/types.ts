@@ -22,8 +22,15 @@ export type AssignmentStatus = "not_started" | "in_progress" | "completed";
 export type OverallRecommendation =
   | "strong_fit"
   | "nurture"
+  | "needs_diligence"
   | "pause"
   | "disqualify";
+
+export type OwnerRolePreference =
+  | "owner_operator"
+  | "semi_absentee"
+  | "investor_only"
+  | "unsure";
 
 export interface AppUser {
   id: string;
@@ -37,7 +44,7 @@ export interface AppUser {
 
 export interface CandidateProfile {
   id: string;
-  user_id: string;
+  user_id: string | null;
   email: string;
   full_name: string;
   phone: string | null;
@@ -46,6 +53,62 @@ export interface CandidateProfile {
   source: string | null;
   financial_readiness: string | null;
   notes_summary: string | null;
+  assigned_rep: string | null;
+  next_step: string | null;
+  next_follow_up_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Admin-only sales CRM detail. Never exposed to candidate role (RLS admin-only). */
+export interface CandidateCrm {
+  id: string;
+  candidate_id: string;
+  liquid_capital_range: string | null;
+  timeline_to_launch: string | null;
+  owner_role_preference: OwnerRolePreference | null;
+  sales_comfort_level: string | null;
+  technician_management_comfort: string | null;
+  why_preservan: string | null;
+  biggest_concern: string | null;
+  red_flags: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CandidateScores {
+  id: string;
+  candidate_id: string;
+  financial_readiness_score: number | null;
+  owner_operator_fit_score: number | null;
+  coachability_score: number | null;
+  sales_comfort_score: number | null;
+  operations_fit_score: number | null;
+  territory_fit_score: number | null;
+  portal_engagement_score: number | null;
+  validation_maturity_score: number | null;
+  overall_recommendation: OverallRecommendation | null;
+  recommended_next_action: string | null;
+  admin_summary: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DiscoveryReadiness {
+  id: string;
+  candidate_id: string;
+  initial_qualification_complete: boolean;
+  financial_screen_complete: boolean;
+  owner_role_discussed: boolean;
+  territory_review_complete: boolean;
+  fdd_sent_or_ready: boolean;
+  validation_prep_complete: boolean;
+  key_concerns_documented: boolean;
+  leadership_call_complete: boolean;
+  award_recommendation_ready: boolean;
+  updated_by: string | null;
   created_at: string;
   updated_at: string;
 }

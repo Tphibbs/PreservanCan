@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdminRole } from "@/lib/types";
+import { DISCOVERY_CHECKLIST_ITEMS } from "@/lib/sales";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -29,46 +30,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "candidate_id required" }, { status: 400 });
   }
 
-  const SCORE_KEYS = [
-    "financial_readiness_score",
-    "owner_operator_fit_score",
-    "coachability_score",
-    "sales_comfort_score",
-    "operations_fit_score",
-    "territory_fit_score",
-    "portal_engagement_score",
-    "validation_maturity_score",
-  ];
-
-  const scores: Record<string, unknown> = {};
-  for (const key of SCORE_KEYS) {
-    const value = body[key];
-    if (value === "" || value === null || value === undefined) {
-      scores[key] = null;
-    } else {
-      scores[key] = Number(value);
-    }
+  const checklist: Record<string, boolean> = {};
+  for (const item of DISCOVERY_CHECKLIST_ITEMS) {
+    checklist[item.key] = Boolean(body[item.key]);
   }
-  scores.overall_recommendation = body.overall_recommendation || null;
-  scores.recommended_next_action = body.recommended_next_action || null;
-  scores.admin_summary = body.admin_summary || null;
 
   const { data: existing } = await supabase
-    .from("candidate_scores")
+    .from("candidate_discovery_readiness")
     .select("id")
     .eq("candidate_id", candidate_id)
     .maybeSingle();
 
   const payload = {
     candidate_id,
-    ...scores,
-    created_by: appUser.id,
+    ...checklist,
+    updated_by: appUser.id,
     updated_at: new Date().toISOString(),
   };
 
   const { error } = existing
-    ? await supabase.from("candidate_scores").update(payload).eq("id", existing.id)
-    : await supabase.from("candidate_scores").insert(payload);
+    ? await supabase
+        .from("candidate_discovery_readiness")
+        .update(payload)
+        .eq("id", existing.id)
+    : await supabase.from("candidate_discovery_readiness").insert(payload);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
